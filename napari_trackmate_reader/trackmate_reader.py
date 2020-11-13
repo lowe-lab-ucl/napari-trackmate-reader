@@ -1,5 +1,6 @@
 from napari_plugin_engine import napari_hook_implementation
-from pytrackmate import trackmate_peak_import
+import numpy as np
+from pytrackmate import trackmate_peak_import as trackmate_import
 
 
 @napari_hook_implementation
@@ -50,9 +51,9 @@ def reader_function(path):
         A list of LayerData tuples where each tuple in the list contains
         (data, metadata, layer_type), where data is a numpy array, metadata is
         a dict of keyword arguments for the corresponding viewer.add_* method
-        in napari, and layer_type is a lower-case string naming the type of layer.
-        Both "meta", and "layer_type" are optional. napari will default to
-        layer_type=="image" if not provided
+        in napari, and layer_type is a lower-case string naming the type of
+        layer. Both "meta", and "layer_type" are optional. napari will default
+        to layer_type=="image" if not provided
     """
     # handle both a string and a list of strings
     paths = [path] if isinstance(path, str) else path
@@ -60,11 +61,15 @@ def reader_function(path):
     layer_data = []
     for _path in paths:
         # load all files into array
-        peaks = trackmate_peak_import(_path, get_tracks=True).reset_index(drop=True)
+        peaks = trackmate_import(_path, get_tracks=True).reset_index(drop=True)
         sorted_peaks = peaks.sort_values(['label', 't'], ignore_index=True)
 
         # extract the data, properties
-        data = sorted_peaks.loc[:, ('label', 't', 'y', 'x')]
+        data = sorted_peaks.loc[:, ('label', 't', 'z', 'y', 'x')]
+
+        # if z is empty, drop it
+        if np.allclose(np.asarray(data['z']), np.zeros((data.shape[0], ))):
+            data = data.drop(columns=['z'])
 
         # TODO(arl): extract the graph information
 
