@@ -1,0 +1,10 @@
+site_name: napari-trackmate-reader
+site_description: A plugin to load Trackmate files.
+site_author: Alan R. Lowe
+
+theme: readthedocs
+
+repo_url: https://github.com/quantumjot/napari-trackmate-reader
+
+pages:
+- Home: index.md
